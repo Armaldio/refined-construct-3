@@ -1040,6 +1040,11 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
+"@types/firefox-webext-browser@^82.0.0":
+  version "82.0.0"
+  resolved "https://registry.yarnpkg.com/@types/firefox-webext-browser/-/firefox-webext-browser-82.0.0.tgz#4d0f5cfebd7321d2cbf0ccfb6032570f0138b958"
+  integrity sha512-zKHePkjMx42KIUUZCPcUiyu1tpfQXH9VR4iDYfns3HvmKVJzt/TAFT+DFVroos8BI9RH78YgF3Hi/wlC6R6cKA==
+
 "@types/glob@^7.1.1":
   version "7.1.3"
   resolved "https://registry.nlark.com/@types/glob/download/@types/glob-7.1.3.tgz#e6ba80f36b7daad2c685acd9266382e68985c183"
@@ -8507,6 +8512,11 @@ timsort@^0.3.0:
   version "0.3.0"
   resolved "https://registry.npm.taobao.org/timsort/download/timsort-0.3.0.tgz#405411a8e7e6339fe64db9a234de11dc31e02bd4"
   integrity sha1-QFQRqOfmM5/mTbmiNN4R3DHgK9Q=
+
+tinykeys@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/tinykeys/-/tinykeys-1.1.3.tgz#5881cb0af2b1426417e43ae932c312d9c7261d15"
+  integrity sha512-18kivCMdM70c4Zz8FE/BeBS69iJ3xSd3+LJ9kzXhWHZj/gqtMVu+vXaVZG5+3HEnKWk6rdrFgObyNaYUFqIaWA==
 
 tmp@^0.0.33:
   version "0.0.33"
