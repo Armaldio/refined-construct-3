@@ -20,6 +20,23 @@
       "js": [
         "js/app.js"
       ]
+    },
+    {
+      "matches": [
+        "*://editor.construct.net/*"
+      ],
+      "js": [
+        "logger.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "*://preview.construct.net/debug.html"
+      ],
+      "js": [
+        "debug.js"
+      ]
     }
   ],
   "version": "0.1.0",

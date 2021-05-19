@@ -70,11 +70,10 @@ export default defineComponent({
       this.lines = [];
     },
     showModal() {
-      // console.log('showing');
-
       const $items = document.querySelectorAll('ui-treeitem');
-      // console.log('items', $items);
+      const $mainTabs = document.querySelector('.main-tabs');
 
+      // Project elements
       $items.forEach((item) => {
         if (!item) {
           console.log('no item');
@@ -109,6 +108,13 @@ export default defineComponent({
         });
       });
 
+      if ($mainTabs) {
+        const tabs = $mainTabs.querySelectorAll('ui-tab');
+        tabs.forEach((tab) => {
+
+        });
+      }
+
       this.show = true;
     },
   },
@@ -139,10 +145,11 @@ export default defineComponent({
   border-radius: 4px;
   background-color: #474747;
 
-  opacity: 0;
-  height: 0;
-  transition: height 350ms ease-in-out, opacity 350ms ease-in-out;
   z-index: 1;
+
+  transition: height 150ms ease-in-out, opacity 150ms ease-in-out;
+  height: 0;
+  opacity: 0;
 
   &.is-visible {
     opacity: 1;
