@@ -1,9 +1,12 @@
 <template>
   <div class="quickswitch" :class="{ 'is-visible': show }">
+    <div class="header">
+      Quick Search
+    </div>
     <div class="content">
-      <input class="input" type="text">
+      <input placeholder="Search through the project..." class="input" type="text" v-model="search">
       <div class="lines">
-        <div class="line" @click="onLineClick(line)" v-for="(line, i) in lines" :key="i">
+        <div class="line" @click="onLineClick(line)" v-for="(line, i) in items" :key="i">
           <div :style="{ background: line.icon }" class="icon"></div>
           <div class="text">{{ line.label }}</div>
         </div>
@@ -15,6 +18,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import tinykeys from 'tinykeys';
+import Fuse from 'fuse.js';
 
 interface Item {
   dom: Node;
@@ -30,7 +34,26 @@ export default defineComponent({
     return {
       lines: [] as Item[],
       show: false,
+      search: '',
     };
+  },
+  computed: {
+    items(): Item[] {
+      if (!this.search) {
+        return this.lines;
+      }
+
+      const options = {
+        keys: [
+          'label',
+        ],
+      };
+
+      const fuse = new Fuse(this.lines, options);
+      const result = fuse.search(this.search);
+      console.log('result', result);
+      return result.map((r) => r.item);
+    },
   },
   methods: {
     onLineClick(line: Item): void {
@@ -41,14 +64,16 @@ export default defineComponent({
       this.hideModal();
     },
     hideModal() {
-      console.log('hiding');
+      // console.log('hiding');
       this.show = false;
+      this.search = '';
+      this.lines = [];
     },
     showModal() {
-      console.log('showing');
+      // console.log('showing');
 
       const $items = document.querySelectorAll('ui-treeitem');
-      console.log('items', $items);
+      // console.log('items', $items);
 
       $items.forEach((item) => {
         if (!item) {
@@ -68,10 +93,10 @@ export default defineComponent({
         let icon = '';
         const label = $text?.innerHTML ?? '';
 
-        console.log('label', label);
+        // console.log('label', label);
 
         if ($icon) {
-          console.log('getComputedStyle($icon)', getComputedStyle($icon));
+          // console.log('getComputedStyle($icon)', getComputedStyle($icon));
           icon = getComputedStyle($icon).background;
         }
 
@@ -114,14 +139,24 @@ export default defineComponent({
   border-radius: 4px;
   background-color: #474747;
 
-  display: none;
+  opacity: 0;
   height: 0;
-  transition: height 350ms ease-in-out;
+  transition: height 350ms ease-in-out, opacity 350ms ease-in-out;
   z-index: 1;
 
   &.is-visible {
-    display: block;
-    height: 250px;
+    opacity: 1;
+    height: 450px;
+  }
+
+  .header {
+    background: #696969;
+    height: 25px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D9D9D9;
   }
 
   .content {
@@ -131,17 +166,17 @@ export default defineComponent({
 
     .input {
       background: #303030;
-      padding: 0;
+      padding: 0 8px;
+      border-radius: 3px;
       border: 0;
       height: 50px;
-      outline: 1px solid grey;
       margin: 10px;
       box-sizing: border-box;
       display: inline-block;
       line-height: 50px;
       font-size: 24px;
       padding: 8px;
-      color: black;
+      color: #b8b8b8;
     }
 
     .lines {
