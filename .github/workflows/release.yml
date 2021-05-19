@@ -1,0 +1,50 @@
+name: Release
+on:
+  push:
+    tags:
+      - '**'
+jobs:
+  Version:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        command:
+          # - firefox
+          - chrome
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install
+        run: yarn
+
+      - name: build
+        run: yarn build
+
+      - name: zip
+        run: zip -r extension.zip dist
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: extension.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: submit
+      #   run: |
+      #     case ${{ matrix.command }} in
+      #       chrome)
+      #         npx chrome-webstore-upload-cli@1 upload --source extension.zip --auto-publish
+      #         ;;
+      #       firefox)
+      #         npx web-ext-submit@5
+      #         ;;
+      #     esac
+      #   env:
+      #     EXTENSION_ID: ${{ secrets.EXTENSION_ID }}
+      #     CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      #     CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+      #     REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+      #     WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+      #     WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}

@@ -111,7 +111,7 @@ export default defineComponent({
       if ($mainTabs) {
         const tabs = $mainTabs.querySelectorAll('ui-tab');
         tabs.forEach((tab) => {
-
+          //
         });
       }
 

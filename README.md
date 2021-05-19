@@ -1,4 +1,4 @@
-# quickswitch-c3
+# Refined C3
 
 ## Project setup
 ```

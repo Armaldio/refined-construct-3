@@ -1,10 +1,10 @@
 {
-  "name": "quickswitch-c3",
+  "name": "refined-c3",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service build --mode development --watch",
-    "build": "vue-cli-service build",
+    "build": "vue-cli-service build --mode development",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {

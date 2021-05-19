@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "__MSG_extName__",
+  "name": "Refined C3",
   "homepage_url": "http://localhost:8080/",
-  "description": "A Vue Browser Extension",
+  "description": "Various tweaks and improvements for the Construct 3 Editor",
   "default_locale": "en",
   "permissions": [
     "*://editor.construct.net/*"
