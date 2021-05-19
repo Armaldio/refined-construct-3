@@ -3,10 +3,12 @@ const observer = new MutationObserver((mutations, me) => {
   if (elementList) {
     /**  --  */
     console.log("hello");
+    const list = document.querySelector("#objectList");
 
     const searchBar = document.createElement("input");
     searchBar.type = "search";
     searchBar.placeholder = "Search...";
+    searchBar.id = "objectListSearch";
 
     // Je hardcode le style pour le moment, c'est deg je sais
     // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
@@ -19,18 +21,40 @@ const observer = new MutationObserver((mutations, me) => {
     // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     // Faudra remplacer ça quand y'aura un machin de CSS mis en place xoxo
 
-    searchBar.id = "objectListSearch";
     elementList.prepend(searchBar);
-    /**  --  */
-    const list = document.querySelector("#objectList");
-    searchBar.addEventListener("input", event => {
+
+    let inputChangeHandler = search => {
+      localStorage.setItem(localStorageItemKeyName, search);
       for (let i = 0; i < list.children.length; i++) {
         let child = list.children[i];
         let text = child.querySelector(".item a").innerText;
-        child.style.display = text.toLowerCase().includes(event.target.value.toLowerCase())
-          ? ""
-          : "none";
+        child.style.display = text.toLowerCase().includes(search.toLowerCase()) ? "" : "none";
       }
+    };
+
+    //localstorage store old value
+    const localStorageItemKeyName = "refinedConstructDebuggerSearchbarValue";
+    let previousValue = localStorage.getItem(localStorageItemKeyName);
+    if (previousValue) {
+      searchBar.value = previousValue;
+      if (elementList.children.length > 0) {
+        inputChangeHandler(previousValue);
+      }
+      const subObserver = new MutationObserver((mutations, me) => {
+        if (elementList.children.length > 0) {
+          inputChangeHandler(previousValue);
+          me.disconnect(); // stop observing
+        }
+      });
+      subObserver.observe(elementList, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    /**  --  */
+    searchBar.addEventListener("input", event => {
+      inputChangeHandler(event.target.value);
     });
 
     me.disconnect(); // stop observing
