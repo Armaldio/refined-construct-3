@@ -150,8 +150,10 @@ export default defineComponent({
   transition: height 150ms ease-in-out, opacity 150ms ease-in-out;
   height: 0;
   opacity: 0;
+  pointer-events: none;
 
   &.is-visible {
+    pointer-events: all;
     opacity: 1;
     height: 450px;
   }
