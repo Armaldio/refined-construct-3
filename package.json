@@ -5,7 +5,8 @@
   "scripts": {
     "serve": "vue-cli-service build --mode development --watch",
     "build": "vue-cli-service build --mode development",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "version": "npx dot-json public/manifest.json version $npm_package_version && git add public/manifest.json"
   },
   "dependencies": {
     "core-js": "^3.6.5",
