@@ -1,24 +1,8 @@
 # Refined C3
 
-## Project setup
-```
-yarn install
-```
+Refined C3 is a browser extension that add various tweaks and utilities to the Construct 3 editor.
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
-
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+# [Chrome / Brave](https://chrome.google.com/webstore/detail/refined-c3/oancmpnjbfdoghooiachoknamecnjoll)
+![https://badgen.net/chrome-web-store/users/oancmpnjbfdoghooiachoknamecnjoll](https://badgen.net/chrome-web-store/users/oancmpnjbfdoghooiachoknamecnjoll)
+![https://badgen.net/chrome-web-store/stars/oancmpnjbfdoghooiachoknamecnjoll](https://badgen.net/chrome-web-store/stars/oancmpnjbfdoghooiachoknamecnjoll)
+![https://badgen.net/chrome-web-store/v/oancmpnjbfdoghooiachoknamecnjoll](https://badgen.net/chrome-web-store/v/oancmpnjbfdoghooiachoknamecnjoll)
