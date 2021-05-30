@@ -35,6 +35,7 @@ export default defineComponent({
       lines: [] as Item[],
       show: false,
       search: '',
+      pageWindow: null as (null | Window),
     };
   },
   computed: {
@@ -118,7 +119,16 @@ export default defineComponent({
       this.show = true;
     },
   },
-  mounted() {
+  async mounted() {
+    // const port = chrome.runtime.connect();
+
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'CONTEXT') {
+        this.pageWindow = event.data.window;
+      }
+      console.log('app event', event);
+    }, false);
+
     tinykeys(window, {
       '$mod+Shift+K': () => {
         this.showModal();
@@ -210,6 +220,5 @@ export default defineComponent({
       }
     }
   }
-
 }
 </style>
