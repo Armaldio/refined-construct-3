@@ -33,6 +33,8 @@ export default defineComponent({
       }
     }, false);
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     Headway.init({
       selector: '#announce-headway',
       account: 'JRpALx',

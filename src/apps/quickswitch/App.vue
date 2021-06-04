@@ -19,6 +19,7 @@
 import { defineComponent } from 'vue';
 import tinykeys from 'tinykeys';
 import Fuse from 'fuse.js';
+import { HTMLToC3UI } from '@/tree/tree';
 
 interface Item {
   dom: Node;
@@ -71,49 +72,12 @@ export default defineComponent({
       this.lines = [];
     },
     showModal() {
-      const $items = document.querySelectorAll('ui-treeitem');
-      const $mainTabs = document.querySelector('.main-tabs');
+      const project = document.querySelector('#projectBar ui-tree');
+      if (project) {
+        console.log('project?.innerHTML', project?.outerHTML);
+        const ui = HTMLToC3UI(project?.outerHTML);
 
-      // Project elements
-      $items.forEach((item) => {
-        if (!item) {
-          console.log('no item');
-          return;
-        }
-
-        const wrap = item.querySelector('.tree-item-wrap');
-        if (!wrap) {
-          console.log('no wrap');
-          return;
-        }
-
-        const $text = wrap.querySelector('.tree-item-name');
-        const $icon = wrap.querySelector('ui-icon');
-
-        let icon = '';
-        const label = $text?.innerHTML ?? '';
-
-        // console.log('label', label);
-
-        if ($icon) {
-          // console.log('getComputedStyle($icon)', getComputedStyle($icon));
-          icon = getComputedStyle($icon).background;
-        }
-
-        // console.log('icon.style', icon.style);
-
-        this.lines.push({
-          dom: wrap,
-          icon,
-          label,
-        });
-      });
-
-      if ($mainTabs) {
-        const tabs = $mainTabs.querySelectorAll('ui-tab');
-        tabs.forEach((tab) => {
-          //
-        });
+        console.log('ui', ui);
       }
 
       this.show = true;
