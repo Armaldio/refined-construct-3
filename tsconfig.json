@@ -31,8 +31,9 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
-, "public/background.ts"  ],
+    "tests/**/*.tsx",
+    "public/background.ts"
+, "shims-vue.d.ts"],
   "exclude": [
     "node_modules"
   ]
