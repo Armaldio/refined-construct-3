@@ -17,6 +17,8 @@ export class UIElement {
 
   children: UIElement[] = [];
 
+  selector: string[] = [];
+
   constructor(type: string) {
     this.type = type;
   }
@@ -25,7 +27,6 @@ export class UIElement {
 const isElement = (node: Node): node is Element => node.type === 'element';
 
 const getTreeItemWrapInfos = (n: Element) => {
-  console.log('n', n);
   try {
     // @ts-ignore
     const icon = n.children[1].children[0].properties.style;
@@ -56,7 +57,7 @@ const uiTreeItem = (node: Element): UIElement => {
   return data;
 };
 
-const uiTree = (node: Element) => {
+const uiTree = (node: Element, path: string[]) => {
   const data: UIElement[] = [];
 
   let tree: UIElement | null = null;
@@ -82,7 +83,8 @@ const uiTree = (node: Element) => {
         } else {
           tree.isOpened = true;
         }
-        tree.children.push(...uiTree(n));
+        tree.selector.push(n.tagName)
+        tree.children.push(...uiTree(n, tree.selector));
       }
     }
   });
@@ -100,7 +102,8 @@ export const getTree = (node: Root): UIElement => {
   node.children.forEach((n) => {
     if (isElement(n)) {
       if (n.tagName === 'ui-tree') {
-        data.children.push(...uiTree(n));
+        data.selector.push(n.tagName)
+        data.children.push(...uiTree(n, data.selector));
       }
     }
   });

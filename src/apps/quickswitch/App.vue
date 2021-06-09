@@ -19,13 +19,9 @@
 import { defineComponent } from 'vue';
 import tinykeys from 'tinykeys';
 import Fuse from 'fuse.js';
-import { HTMLToC3UI } from '@/tree/tree';
+import { HTMLToC3UI, UIElement } from '@/tree/tree';
 
-interface Item {
-  dom: Node;
-  icon: string;
-  label: string;
-}
+type Item = UIElement & { path: string[] }
 
 export default defineComponent({
   name: 'App',
@@ -48,6 +44,7 @@ export default defineComponent({
       const options = {
         keys: [
           'label',
+          'path',
         ],
       };
 
@@ -61,7 +58,13 @@ export default defineComponent({
     onLineClick(line: Item): void {
       const clickEvent = document.createEvent('MouseEvents');
       clickEvent.initEvent('dblclick', true, true);
-      line.dom.dispatchEvent(clickEvent);
+
+      const elements = document.querySelectorAll('.tree-item-name');
+      for (const item of elements) {
+        if (item.innerHTML === line.label) {
+          item.dispatchEvent(clickEvent);
+        }
+      }
 
       this.hideModal();
     },
@@ -71,13 +74,32 @@ export default defineComponent({
       this.search = '';
       this.lines = [];
     },
+    traverse(
+      node: UIElement,
+      path: string[] = [],
+      result: Item[] = [],
+    ) {
+      if (!node.children.length) {
+        result.push({
+          ...node,
+          path: path.concat(node.label),
+        });
+      }
+      for (const child of node.children) {
+        this.traverse(child, node.type === 'root' ? path : path.concat(node.label), result);
+      }
+      return result;
+    },
     showModal() {
       const project = document.querySelector('#projectBar ui-tree');
       if (project) {
-        console.log('project?.innerHTML', project?.outerHTML);
         const ui = HTMLToC3UI(project?.outerHTML);
 
-        console.log('ui', ui);
+        const result = this.traverse(ui);
+
+        console.log('result', result);
+
+        this.lines = result;
       }
 
       this.show = true;
