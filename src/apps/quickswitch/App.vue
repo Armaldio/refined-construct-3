@@ -4,11 +4,21 @@
       Quick Search
     </div>
     <div class="content">
-      <input placeholder="Search through the project..." class="input" type="text" v-model="search">
-      <div class="lines">
+      <input
+        @input="resetScroll"
+        placeholder="Search through the project..."
+        class="input"
+        type="text"
+        v-model="search"
+      >
+      <span>enter to open, r to rename, d to delete, c to duplicate</span>
+      <div class="lines" ref="lines">
         <div class="line" @click="onLineClick(line)" v-for="(line, i) in items" :key="i">
-          <div :style="{ background: line.icon }" class="icon"></div>
-          <div class="text">{{ line.label }}</div>
+          <div :style="line.icon" class="icon"></div>
+          <div class="text">
+            <span class="title">{{ line.label }}</span>
+            <span class="subtitle">{{ joinPath(line.path) }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -16,10 +26,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import tinykeys from 'tinykeys';
 import Fuse from 'fuse.js';
 import { HTMLToC3UI, UIElement } from '@/tree/tree';
+import { Element } from 'hast';
 
 type Item = UIElement & { path: string[] }
 
@@ -29,6 +40,7 @@ export default defineComponent({
   },
   data() {
     return {
+      myRefs: ref(null),
       lines: [] as Item[],
       show: false,
       search: '',
@@ -55,6 +67,19 @@ export default defineComponent({
     },
   },
   methods: {
+    joinPath(path: string[]) {
+      return path.join(' > ');
+    },
+    resetScroll() {
+      console.log('this.myRefs', this.myRefs);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      console.log('this.myRefs', this.myRefs.value);
+
+      // const el = this.myRefs.lines as Element;
+      // console.log('el', el);
+      // el.scrollHeight = 0;
+    },
     onLineClick(line: Item): void {
       const clickEvent = document.createEvent('MouseEvents');
       clickEvent.initEvent('dblclick', true, true);
@@ -107,7 +132,6 @@ export default defineComponent({
   },
   async mounted() {
     // const port = chrome.runtime.connect();
-
     window.addEventListener('message', (event) => {
       if (event.data.type === 'CONTEXT') {
         this.pageWindow = event.data.window;
@@ -141,7 +165,7 @@ export default defineComponent({
   border-radius: 4px;
   background-color: #474747;
 
-  z-index: 1;
+  z-index: 999999;
 
   transition: height 150ms ease-in-out, opacity 150ms ease-in-out;
   height: 0;
@@ -165,7 +189,7 @@ export default defineComponent({
   }
 
   .content {
-    height: 100%;
+    height: calc(100% - 25px);
     display: flex;
     flex-direction: column;
 
@@ -188,8 +212,8 @@ export default defineComponent({
       overflow: auto;
 
       .line {
-        height: 24px;
-        padding: 16px 8px;
+        // height: 24px;
+        padding: 4px 8px;
         display: flex;
         font-size: 18px;
         align-items: center;
@@ -202,6 +226,17 @@ export default defineComponent({
         .icon {
           min-width: 22px;
           min-height: 20px;
+        }
+
+        .text {
+          display: flex;
+          flex-direction: column;
+          margin-left: 8px;
+
+          .subtitle {
+            font-size: 10px;
+            color: grey;
+          }
         }
       }
     }

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import unified from 'unified';
+import { unified } from 'unified';
 import parse from 'rehype-parse';
 import {
   Root, Node, Element,
@@ -83,7 +83,7 @@ const uiTree = (node: Element, path: string[]) => {
         } else {
           tree.isOpened = true;
         }
-        tree.selector.push(n.tagName)
+        tree.selector.push(n.tagName);
         tree.children.push(...uiTree(n, tree.selector));
       }
     }
@@ -102,7 +102,7 @@ export const getTree = (node: Root): UIElement => {
   node.children.forEach((n) => {
     if (isElement(n)) {
       if (n.tagName === 'ui-tree') {
-        data.selector.push(n.tagName)
+        data.selector.push(n.tagName);
         data.children.push(...uiTree(n, data.selector));
       }
     }
