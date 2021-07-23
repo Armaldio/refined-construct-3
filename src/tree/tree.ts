@@ -19,10 +19,21 @@ export class UIElement {
 
   selector: string[] = [];
 
+  index = 0;
+
   constructor(type: string) {
     this.type = type;
   }
 }
+
+/*
+
+root
+  ui-tree
+    ui-treeitem-children 0
+      ui-treeitem-children 0
+
+*/
 
 const isElement = (node: Node): node is Element => node.type === 'element';
 
@@ -43,13 +54,17 @@ const getTreeItemWrapInfos = (n: Element) => {
   }
 };
 
-const uiTreeItem = (node: Element): UIElement => {
+const uiTreeItem = (node: Element, index: number, path: string[]): UIElement => {
   const data = new UIElement('ui-treeitem');
 
   const infos = getTreeItemWrapInfos(node);
 
+  console.log('node.tagName', node);
+
   data.icon = infos.icon;
   data.label = infos.label;
+  data.index = index;
+  data.selector = [...path, node.tagName];
 
   // IMPORTANT
   // log(level, data.label)
@@ -62,7 +77,7 @@ const uiTree = (node: Element, path: string[]) => {
 
   let tree: UIElement | null = null;
 
-  node.children.forEach((n) => {
+  node.children.forEach((n, index) => {
     if (isElement(n) && n.tagName === 'ui-treeitem') {
       // If tree already exist, push it
       // Otherwise, it's our first element
@@ -71,9 +86,10 @@ const uiTree = (node: Element, path: string[]) => {
       }
 
       tree = new UIElement('ui-tree');
-      const uiTreeItemEl = uiTreeItem(n);
+      const uiTreeItemEl = uiTreeItem(n, index, path);
       tree.icon = uiTreeItemEl.icon;
       tree.label = uiTreeItemEl.label;
+      tree.selector.push(n.tagName);
     }
 
     if (isElement(n) && n.tagName === 'ui-treeitem-children') {
@@ -99,7 +115,7 @@ const uiTree = (node: Element, path: string[]) => {
 export const getTree = (node: Root): UIElement => {
   const data = new UIElement('root');
 
-  node.children.forEach((n) => {
+  node.children.forEach((n, index) => {
     if (isElement(n)) {
       if (n.tagName === 'ui-tree') {
         data.selector.push(n.tagName);
