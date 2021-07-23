@@ -78,7 +78,7 @@ export default defineComponent({
       if (project) {
         const observer = new MutationObserver(debounceFn(() => {
           // @ts-ignore
-          const ui = HTMLToC3UI(project.outerHTML);
+          const ui = HTMLToC3UI(project);
 
           console.log('ui', ui);
 
@@ -111,11 +111,8 @@ export default defineComponent({
       const clickEvent = document.createEvent('MouseEvents');
       clickEvent.initEvent('dblclick', true, true);
 
-      const elements = document.querySelectorAll('.tree-item-name');
-      for (const item of elements) {
-        if (item.innerHTML === line.label) {
-          item.dispatchEvent(clickEvent);
-        }
+      if (line.reference) {
+        line.reference.querySelector('.tree-item-wrap')?.dispatchEvent(clickEvent);
       }
 
       this.hideModal();

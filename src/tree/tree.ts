@@ -1,11 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import { unified } from 'unified';
-import parse from 'rehype-parse';
-import {
-  Root, Node, Element,
-// eslint-disable-next-line import/no-unresolved
-} from 'hast';
-
 export class UIElement {
   label = '';
 
@@ -17,9 +9,7 @@ export class UIElement {
 
   children: UIElement[] = [];
 
-  selector: string[] = [];
-
-  index = 0;
+  reference: Element | null = null;
 
   constructor(type: string) {
     this.type = type;
@@ -35,14 +25,14 @@ root
 
 */
 
-const isElement = (node: Node): node is Element => node.type === 'element';
+const isElement = (node: Node): node is Element => true;
 
 const getTreeItemWrapInfos = (n: Element) => {
   try {
-    // @ts-ignore
-    const icon = n.children[1].children[0].properties.style;
-    // @ts-ignore
-    const label = n.children[1].children[1].children[0].value;
+    console.log('n', n);
+
+    const icon = (n.childNodes[1].childNodes[0] as HTMLElement).style.cssText;
+    const label = (n.childNodes[1].childNodes[1] as HTMLElement).textContent ?? '';
 
     return { icon, label };
   } catch (e) {
@@ -54,17 +44,16 @@ const getTreeItemWrapInfos = (n: Element) => {
   }
 };
 
-const uiTreeItem = (node: Element, index: number, path: string[]): UIElement => {
+const uiTreeItem = (node: Element): UIElement => {
   const data = new UIElement('ui-treeitem');
 
   const infos = getTreeItemWrapInfos(node);
 
-  console.log('node.tagName', node);
+  // console.log('node.tagName', node);
 
   data.icon = infos.icon;
   data.label = infos.label;
-  data.index = index;
-  data.selector = [...path, node.tagName];
+  data.reference = node;
 
   // IMPORTANT
   // log(level, data.label)
@@ -72,13 +61,13 @@ const uiTreeItem = (node: Element, index: number, path: string[]): UIElement => 
   return data;
 };
 
-const uiTree = (node: Element, path: string[]) => {
+const uiTree = (node: Element) => {
   const data: UIElement[] = [];
 
   let tree: UIElement | null = null;
 
-  node.children.forEach((n, index) => {
-    if (isElement(n) && n.tagName === 'ui-treeitem') {
+  node.childNodes.forEach((n) => {
+    if (isElement(n) && n.tagName === 'UI-TREEITEM') {
       // If tree already exist, push it
       // Otherwise, it's our first element
       if (tree) {
@@ -86,21 +75,21 @@ const uiTree = (node: Element, path: string[]) => {
       }
 
       tree = new UIElement('ui-tree');
-      const uiTreeItemEl = uiTreeItem(n, index, path);
+      const uiTreeItemEl = uiTreeItem(n);
       tree.icon = uiTreeItemEl.icon;
       tree.label = uiTreeItemEl.label;
-      tree.selector.push(n.tagName);
+      tree.reference = n;
     }
 
-    if (isElement(n) && n.tagName === 'ui-treeitem-children') {
+    if (isElement(n) && n.tagName === 'UI-TREEITEM-CHILDREN') {
       if (tree) {
-        if (n.properties?.collapsed === '') {
+        console.log('n.attributes', n.hasAttribute('collapsed'));
+        if (n.hasAttribute('collapsed')) {
           tree.isOpened = false;
         } else {
           tree.isOpened = true;
         }
-        tree.selector.push(n.tagName);
-        tree.children.push(...uiTree(n, tree.selector));
+        tree.children.push(...uiTree(n));
       }
     }
   });
@@ -112,25 +101,12 @@ const uiTree = (node: Element, path: string[]) => {
   return data;
 };
 
-export const getTree = (node: Root): UIElement => {
+export const HTMLToC3UI = (project: HTMLElement): UIElement => {
+  // console.log('node', project);
   const data = new UIElement('root');
 
-  node.children.forEach((n, index) => {
-    if (isElement(n)) {
-      if (n.tagName === 'ui-tree') {
-        data.selector.push(n.tagName);
-        data.children.push(...uiTree(n, data.selector));
-      }
-    }
-  });
+  data.reference = project;
+  data.children.push(...uiTree(project));
 
   return data;
-};
-
-export const HTMLToC3UI = (doc: string): UIElement => {
-  const tree = unified()
-    .use(parse, { fragment: true })
-    .parse(doc) as Root;
-
-  return getTree(tree);
 };
