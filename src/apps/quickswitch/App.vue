@@ -35,6 +35,7 @@ import { defineComponent, ref } from 'vue';
 import tinykeys from 'tinykeys';
 import Fuse from 'fuse.js';
 import { HTMLToC3UI, UIElement } from '@/tree/tree';
+// eslint-disable-next-line
 import { Element } from 'hast';
 import debounceFn from 'debounce-fn';
 
