@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const ExtensionReloader = require('webpack-ext-reloader');
-const path = require('path');
 
 module.exports = {
   chainWebpack: (config) => {
@@ -10,13 +9,12 @@ module.exports = {
   configureWebpack: {
     plugins: [
       new ExtensionReloader({
-        // manifest: 'public/manifest.json',
         entries: {
           contentScript: [
             'quickswitch',
             'headway',
           ],
-          background: ['background'],
+          background: 'background',
         },
       }),
     ],
