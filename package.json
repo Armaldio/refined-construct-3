@@ -10,14 +10,18 @@
   },
   "dependencies": {
     "core-js": "^3.15.2",
+    "crx-bridge": "^3.0.1",
     "debounce-fn": "^5.0.0",
+    "focus-trap": "^6.6.0",
+    "focus-trap-vue": "3",
     "fuse.js": "^6.4.6",
     "hast": "^1.0.0",
     "rehype-parse": "^7.0.1",
     "tinykeys": "^1.2.0",
     "unified": "^10.0.0",
     "vue": "^3.0.0",
-    "vuex": "^4.0.0-0"
+    "vuex": "^4.0.0-0",
+    "webextension-polyfill-ts": "^0.26.0"
   },
   "devDependencies": {
     "@types/core-js": "^2.5.4",

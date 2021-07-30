@@ -7,6 +7,8 @@ export class UIElement {
 
   isOpened = false
 
+  isLeaf = true
+
   children: UIElement[] = [];
 
   reference: Element | null = null;
@@ -16,21 +18,10 @@ export class UIElement {
   }
 }
 
-/*
-
-root
-  ui-tree
-    ui-treeitem-children 0
-      ui-treeitem-children 0
-
-*/
-
 const isElement = (node: Node): node is Element => true;
 
 const getTreeItemWrapInfos = (n: Element) => {
   try {
-    console.log('n', n);
-
     const icon = (n.childNodes[1].childNodes[0] as HTMLElement).style.cssText;
     const label = (n.childNodes[1].childNodes[1] as HTMLElement).textContent ?? '';
 
@@ -49,14 +40,9 @@ const uiTreeItem = (node: Element): UIElement => {
 
   const infos = getTreeItemWrapInfos(node);
 
-  // console.log('node.tagName', node);
-
   data.icon = infos.icon;
   data.label = infos.label;
   data.reference = node;
-
-  // IMPORTANT
-  // log(level, data.label)
 
   return data;
 };
@@ -83,7 +69,8 @@ const uiTree = (node: Element) => {
 
     if (isElement(n) && n.tagName === 'UI-TREEITEM-CHILDREN') {
       if (tree) {
-        console.log('n.attributes', n.hasAttribute('collapsed'));
+        tree.isLeaf = false;
+
         if (n.hasAttribute('collapsed')) {
           tree.isOpened = false;
         } else {

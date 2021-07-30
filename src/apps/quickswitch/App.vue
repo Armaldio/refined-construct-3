@@ -1,15 +1,16 @@
 <template>
-  <div class="quickswitch" :class="{ 'is-visible': show }">
+  <div class="quickswitch" :class="{ 'is-visible': show }" ref="root">
     <div class="header">
       Quick Search
     </div>
     <div class="content">
       <input
         @input="resetScroll"
-        placeholder="Search through the project..."
+        placeholder="Search through the project.."
         class="input"
         type="text"
         v-model="search"
+        ref="input"
       >
       <span class="input-hint">enter to open, r to rename, d to delete, c to duplicate</span>
       <div class="lines" ref="lines">
@@ -31,15 +32,29 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+// TODO flash element on scroll to view
+// TODO open folder on start to fetch elements
+
 import tinykeys from 'tinykeys';
+import { defineComponent } from 'vue';
 import Fuse from 'fuse.js';
 import { HTMLToC3UI, UIElement } from '@/tree/tree';
 // eslint-disable-next-line
 import { Element } from 'hast';
 import debounceFn from 'debounce-fn';
 
-type Item = UIElement & { path: string[] }
+type Context = 'c3' | 'quickswitch' // | 'something else'
+
+interface ShortcutDefinition {
+  key: KeyboardEvent['code'];
+  action: (event?: any) => void;
+  context: Context;
+}
+
+type Item = UIElement & {
+  path: string[],
+  project: string,
+}
 
 export default defineComponent({
   name: 'App',
@@ -53,6 +68,7 @@ export default defineComponent({
       search: '',
       pageWindow: null as (null | Window),
       selected: -1,
+      context: 'c3' as Context,
     };
   },
   computed: {
@@ -63,7 +79,10 @@ export default defineComponent({
 
       const options = {
         keys: [
-          'label',
+          {
+            name: 'label',
+            weight: 2,
+          },
           'path',
         ],
       };
@@ -75,21 +94,26 @@ export default defineComponent({
     },
   },
   methods: {
+    setupProject(project: Node, open = false) {
+      // @ts-ignore
+      const ui = HTMLToC3UI(project);
+
+      console.log('ui', ui);
+
+      const result = this.traverse(ui, [], [], true);
+
+      console.log('result', result);
+
+      this.lines = result;
+    },
     onProjectReady(project: Node) {
       if (project) {
+        this.setupProject(project, true);
+
         const observer = new MutationObserver(debounceFn(() => {
-          // @ts-ignore
-          const ui = HTMLToC3UI(project);
-
-          console.log('ui', ui);
-
-          const result = this.traverse(ui);
-
-          console.log('result', result);
-
-          this.lines = result;
+          this.setupProject(project);
         }, {
-          wait: 100,
+          wait: 500,
         }));
 
         observer.observe(project, {
@@ -108,17 +132,27 @@ export default defineComponent({
       el.scrollTop = 0;
     },
     onLineClick(line: Item): void {
-      console.log('line', line);
-      const clickEvent = document.createEvent('MouseEvents');
-      clickEvent.initEvent('dblclick', true, true);
+      if (line.isLeaf) {
+        console.log('line', line);
+        const clickEvent = document.createEvent('MouseEvents');
+        clickEvent.initEvent('dblclick', true, true);
 
-      if (line.reference) {
-        line.reference.querySelector('.tree-item-wrap')?.dispatchEvent(clickEvent);
+        if (line.reference) {
+          line.reference.querySelector('.tree-item-wrap')?.dispatchEvent(clickEvent);
+        }
+      } else {
+        // this.$project
+        (line.reference as HTMLElement | null)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
       }
 
       this.hideModal();
     },
     hideModal() {
+      this.context = 'c3';
+
       this.selected = -1;
       this.show = false;
       this.search = '';
@@ -127,56 +161,100 @@ export default defineComponent({
       node: UIElement,
       path: string[] = [],
       result: Item[] = [],
+      open = false,
     ) {
       // console.log('node', node);
-      // console.log('path', path);
-      if (!node.children.length) {
-        result.push({
-          ...node,
-          path: path.concat(node.label),
-        });
+      if (node?.reference && open && !node.isOpened && node.isLeaf) {
+        console.log('opening ', node.label);
+        const clickEvent = document.createEvent('MouseEvents');
+        clickEvent.initEvent('dblclick', true, true);
+
+        node.reference.dispatchEvent(clickEvent);
+        node.reference.dispatchEvent(clickEvent);
       }
+
+      // console.log('node', node);
+      // console.log('path', path);
+      // if (!node.children.length) {
+      result.push({
+        ...node,
+        path: path.concat(node.label),
+        project: path[0],
+      });
+      // }
       for (const child of node.children) {
         this.traverse(child, node.type === 'root' ? path : path.concat(node.label), result);
       }
       return result;
     },
     showModal() {
+      this.context = 'quickswitch';
+
+      if (this.$refs.input) {
+        (this.$refs.input as HTMLInputElement).focus();
+      }
       this.show = true;
     },
   },
   created() {
+    const shortcuts: ShortcutDefinition[] = [
+      {
+        key: 'ArrowUp',
+        action: () => {
+          if (this.selected > 0) {
+            this.selected -= 1;
+          }
+
+          console.log('this.selected', this.selected, this.items[this.selected]);
+        },
+        context: 'quickswitch',
+      },
+      {
+        key: 'Enter',
+        action: () => {
+          this.onLineClick(this.items[this.selected]);
+          console.log('this.selected', this.selected, this.items[this.selected]);
+        },
+        context: 'quickswitch',
+      },
+      {
+        key: 'ArrowDown',
+        action: () => {
+          if (this.selected < this.items.length) {
+            this.selected += 1;
+          }
+          console.log('this.selected', this.selected, this.items[this.selected]);
+        },
+        context: 'quickswitch',
+      },
+      {
+        key: 'Escape',
+        action: () => {
+          this.hideModal();
+        },
+        context: 'quickswitch',
+      },
+    ];
+
+    document.addEventListener('keydown', (event) => {
+      const contextShortcuts = shortcuts.filter((shortcut) => shortcut.context === this.context);
+
+      const keyShortcuts = contextShortcuts.filter(({ key }) => key === event.code);
+
+      for (let i = 0; i < keyShortcuts.length; i += 1) {
+        // execture action
+        keyShortcuts[i].action(event);
+      }
+
+      if (this.context !== 'c3') {
+        // event.cancelBubble = true;
+        event.stopImmediatePropagation();
+      }
+    });
+
     tinykeys(window, {
       '$mod+Shift+K': () => {
         this.showModal();
-      },
-      Enter: (event) => {
-        if (this.show) {
-          this.onLineClick(this.lines[this.selected]);
-        }
-      },
-      ArrowDown: (event) => {
-        if (this.show && this.selected < this.lines.length) {
-          this.selected += 1;
-        }
-      },
-      ArrowUp: (event) => {
-        if (this.show && this.selected > 0) {
-          this.selected -= 1;
-        }
-      },
-      Space: (event) => {
-        console.log('event', event);
-        console.log('this.show', this.show);
-        if (this.show) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      },
-      Escape: () => {
-        if (this.show) {
-          this.hideModal();
-        }
       },
     });
   },

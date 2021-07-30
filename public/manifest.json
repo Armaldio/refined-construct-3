@@ -32,7 +32,7 @@
         "*://preview.construct.net/debug.html"
       ],
       "js": [
-        "debug.js"
+        "js/debug-search.js"
       ],
       "all_frames": true
     }
