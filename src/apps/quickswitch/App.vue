@@ -34,6 +34,7 @@
 <script lang="ts">
 // TODO flash element on scroll to view
 // TODO open folder on start to fetch elements
+// TODO add search to debug
 
 import tinykeys from 'tinykeys';
 import { defineComponent } from 'vue';
