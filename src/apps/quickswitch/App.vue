@@ -1,40 +1,51 @@
 <template>
-  <div class="quickswitch" :class="{ 'is-visible': show }" ref="root">
-    <div class="header">
-      Quick Search
-    </div>
-    <div class="content">
+  <dialog
+    role="dialog"
+    modal
+    open
+    active
+    class="quickswitch"
+    :class="{ 'is-visible': show }"
+    ref="root"
+  >
+    <ui-dialog-caption class="header">
+      <span class="dialog-caption-text">Quick Search</span>
+    </ui-dialog-caption>
+    <ui-dialog-contents class="content">
       <input
         @input="resetScroll"
-        placeholder="Search through the project.."
-        class="input"
-        type="text"
+        placeholder="Search through the project..."
+        class="search input"
+        type="search"
         v-model="search"
         ref="input"
       >
-      <span class="input-hint">enter to open, r to rename, d to delete, c to duplicate</span>
+      <span class="input-hint">enter to open</span>
+      <!-- , r to rename, d to delete, c to duplicate -->
       <div class="lines" ref="lines">
-        <div
-          class="line"
-          :class="{ selected: selected === i }"
-          @click="onLineClick(line)"
+        <template
           v-for="(line, i) in items" :key="i"
         >
-          <div :style="line.icon" class="icon"></div>
-          <div class="text">
-            <span class="title">{{ line.label }}</span>
-            <span class="subtitle">{{ joinPath(line.path) }}</span>
+          <div
+            class="line"
+            :class="{ selected: selected === i }"
+            @click="onLineClick(line)"
+          >
+            <div :style="line.icon" class="icon"></div>
+            <div class="text">
+              <!-- eslint-disable-next-line -->
+              <span class="title" v-html="line.label_highlight || line.label" />
+              <span class="subtitle">{{ joinPath(line.path) }}</span>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
-    </div>
-  </div>
+    </ui-dialog-contents>
+  </dialog>
 </template>
 
 <script lang="ts">
-// TODO flash element on scroll to view
 // TODO open folder on start to fetch elements
-// TODO add search to debug
 
 import tinykeys from 'tinykeys';
 import { defineComponent } from 'vue';
@@ -43,6 +54,7 @@ import { HTMLToC3UI, UIElement } from '@/tree/tree';
 // eslint-disable-next-line
 import { Element } from 'hast';
 import debounceFn from 'debounce-fn';
+import { highlightElement } from '@/utils';
 
 type Context = 'c3' | 'quickswitch' // | 'something else'
 
@@ -74,11 +86,14 @@ export default defineComponent({
   },
   computed: {
     items(): Item[] {
+      const filter = (arr: Item[]) => arr.filter((x) => x.type !== 'root');
       if (!this.search) {
-        return this.lines;
+        return filter(this.lines);
       }
 
       const options = {
+        includeMatches: true,
+        findAllMatches: true,
         keys: [
           {
             name: 'label',
@@ -88,10 +103,10 @@ export default defineComponent({
         ],
       };
 
-      const fuse = new Fuse(this.lines, options);
+      const fuse = new Fuse(filter(this.lines), options);
       const result = fuse.search(this.search);
       console.log('result', result);
-      return result.map((r) => r.item);
+      return result.map((element) => highlightElement(element));
     },
   },
   methods: {
@@ -131,9 +146,10 @@ export default defineComponent({
     resetScroll() {
       const el = this.$refs.lines as Element;
       el.scrollTop = 0;
+      this.selected = 0;
     },
     onLineClick(line: Item): void {
-      if (line.isLeaf) {
+      if (line.isLeaf && !line.isFolder) {
         console.log('line', line);
         const clickEvent = document.createEvent('MouseEvents');
         clickEvent.initEvent('dblclick', true, true);
@@ -141,15 +157,43 @@ export default defineComponent({
         if (line.reference) {
           line.reference.querySelector('.tree-item-wrap')?.dispatchEvent(clickEvent);
         }
-      } else {
-        // this.$project
-        (line.reference as HTMLElement | null)?.scrollIntoView({
+      } else if (line.reference && line.isFolder) {
+        const intersectionObserver = new IntersectionObserver((entries) => {
+          const [entry] = entries;
+          if (entry.isIntersecting) {
+            intersectionObserver.disconnect();
+            setTimeout(() => {
+              line.reference?.classList.add('flash');
+              setTimeout(() => {
+                line.reference?.classList.remove('flash');
+              }, 250);
+            }, 250);
+          }
+        });
+          // start observing
+        intersectionObserver.observe(line.reference);
+
+        (line.reference as HTMLElement).scrollIntoView({
           behavior: 'smooth',
           block: 'center',
         });
+      } else {
+        console.log('line', line);
       }
 
       this.hideModal();
+    },
+    addDimmer() {
+      const dimmer = document.createElement('div');
+      dimmer.classList.add('c3-dimmer');
+      dimmer.style.zIndex = '0';
+      document.body.appendChild(dimmer);
+    },
+    removeDimmer() {
+      const dimmer = document.querySelector('.c3-dimmer') as HTMLElement;
+      if (dimmer) {
+        dimmer.remove();
+      }
     },
     hideModal() {
       this.context = 'c3';
@@ -157,6 +201,7 @@ export default defineComponent({
       this.selected = -1;
       this.show = false;
       this.search = '';
+      this.removeDimmer();
     },
     traverse(
       node: UIElement,
@@ -195,6 +240,7 @@ export default defineComponent({
         (this.$refs.input as HTMLInputElement).focus();
       }
       this.show = true;
+      this.addDimmer();
     },
   },
   created() {
@@ -204,6 +250,15 @@ export default defineComponent({
         action: () => {
           if (this.selected > 0) {
             this.selected -= 1;
+          }
+
+          const ref = this.$refs.lines as HTMLElement;
+          const selectedLine = ref.querySelector('.selected');
+          if (selectedLine) {
+            selectedLine.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+            });
           }
 
           console.log('this.selected', this.selected, this.items[this.selected]);
@@ -221,8 +276,16 @@ export default defineComponent({
       {
         key: 'ArrowDown',
         action: () => {
-          if (this.selected < this.items.length) {
+          if (this.selected < this.items.length - 1) {
             this.selected += 1;
+          }
+          const ref = this.$refs.lines as HTMLElement;
+          const selectedLine = ref.querySelector('.selected');
+          if (selectedLine) {
+            selectedLine.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+            });
           }
           console.log('this.selected', this.selected, this.items[this.selected]);
         },
@@ -283,19 +346,30 @@ export default defineComponent({
 
 <style lang="scss">
 .quickswitch {
+
+  z-index: 1;
+  margin: 0px;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  // transform: translate(233px, 144px);
+
+  display: flex;
+  flex-direction: column;
+
   position: fixed;
   width: 80%;
 
   transform: translate(-50%, -50%);
   left: 50%;
   top: 50%;
-  border: 1px solid #000;
-  border-radius: 4px;
+  // border: 1px solid #000;
+  // border-radius: 4px;
   background-color: #474747;
 
-  z-index: 999999;
+  // z-index: 999999;
 
-  transition: height 150ms ease-in-out, opacity 150ms ease-in-out;
+  transition: opacity 250ms ease-in-out;
   height: 0;
   opacity: 0;
   pointer-events: none;
@@ -317,7 +391,7 @@ export default defineComponent({
   }
 
   .content {
-    height: calc(100% - 25px);
+    height: calc(100% - 48px);
     display: flex;
     flex-direction: column;
 
@@ -337,9 +411,10 @@ export default defineComponent({
     }
 
     .input-hint {
-      margin-left: 8px;
+      margin-left: 0 0 0 8px;
       color: grey;
       font-size: 12px;
+      text-align: left;
     }
 
     .lines {
@@ -352,12 +427,15 @@ export default defineComponent({
         align-items: center;
         cursor: pointer;
 
-        &.selected {
-          background-color: grey;
-        }
-
+        &.selected,
         &:hover {
-          background-color: #575757;
+          background-color: #696969;
+
+          .text {
+            .subtitle {
+              color: #D9D9D9;
+            }
+          }
         }
 
         .icon {
@@ -368,7 +446,16 @@ export default defineComponent({
         .text {
           display: flex;
           flex-direction: column;
-          margin-left: 8px;
+          text-align: left;
+
+          span {
+            margin: 0 0 0 8px;
+          }
+
+          .highlight-bg {
+            color: #2fcc63;
+            margin: 0;
+          }
 
           .subtitle {
             font-size: 10px;
@@ -379,4 +466,15 @@ export default defineComponent({
     }
   }
 }
+
+ui-treeitem {
+  transition: background-color .25s ease !important;
+  background-color: inherit;
+
+  &.flash {
+    background-color: rgba(255, 0, 0, 0.7);
+    // transition: background-color 2s ease;
+  }
+}
+
 </style>

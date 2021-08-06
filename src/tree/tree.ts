@@ -9,6 +9,8 @@ export class UIElement {
 
   isLeaf = true
 
+  isFolder = false
+
   children: UIElement[] = [];
 
   reference: Element | null = null;
@@ -65,6 +67,10 @@ const uiTree = (node: Element) => {
       tree.icon = uiTreeItemEl.icon;
       tree.label = uiTreeItemEl.label;
       tree.reference = n;
+
+      if (n.classList.contains('fileGroup') || n.classList.contains('parentItem')) {
+        tree.isFolder = true;
+      }
     }
 
     if (isElement(n) && n.tagName === 'UI-TREEITEM-CHILDREN') {

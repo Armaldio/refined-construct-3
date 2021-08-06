@@ -18,6 +18,19 @@ Object.entries(instances).forEach(([name, path]) => {
 module.exports = {
   chainWebpack: (config) => {
     config.optimization.delete('splitChunks');
+
+    config.module
+      .rule('vue')
+      .use('vue-loader')
+      .loader('vue-loader')
+      .tap((options) => {
+        // eslint-disable-next-line no-param-reassign
+        options.compilerOptions = {
+          ...(options.compilerOptions || {}),
+          isCustomElement: (tag) => /(^ui|dialog)/i.test(tag),
+        };
+        return options;
+      });
   },
   configureWebpack: {
     plugins: [
