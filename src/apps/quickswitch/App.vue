@@ -35,7 +35,7 @@
             <div class="text">
               <!-- eslint-disable-next-line -->
               <span class="title" v-html="line.label_highlight || line.label" />
-              <span class="subtitle">{{ joinPath(line.path) }}</span>
+              <span class="subtitle" v-html="line.subtitle_highlight || line.subtitle"></span>
             </div>
           </div>
         </template>
@@ -54,7 +54,7 @@ import { HTMLToC3UI, UIElement } from '@/tree/tree';
 // eslint-disable-next-line
 import { Element } from 'hast';
 import debounceFn from 'debounce-fn';
-import { highlightElement } from '@/utils';
+import { HighlightedObject, highlightElement } from '@/utils';
 
 type Context = 'c3' | 'quickswitch' // | 'something else'
 
@@ -85,11 +85,32 @@ export default defineComponent({
     };
   },
   computed: {
-    items(): Item[] {
+    actions() {
+      return [
+        {
+          icon: '',
+          label: 'Gestionnaire d\'export',
+          subtitle: 'Export your project to various formats',
+          mode: 'action',
+          action: () => {
+            const menuBtn = document.querySelector('#mainMenuButton') as HTMLElement;
+            menuBtn.click();
+            console.log('menuBtn', menuBtn);
+            const menu = document.querySelector('ui-menu') as HTMLElement;
+            console.log('menu', menu);
+            const vue = (menu.querySelectorAll('ui-menuitem')[2]) as HTMLElement;
+            console.log('vue', vue);
+            const exportMenu = (vue.querySelectorAll('ui-menuitem')[3]) as HTMLElement;
+
+            console.log('exportMenu', exportMenu);
+            exportMenu.click();
+            // const menu = document.querySelector('#mainMenuButton') as HTMLElement;
+          },
+        },
+      ];
+    },
+    items(): HighlightedObject<Item>[] | Item[] {
       const filter = (arr: Item[]) => arr.filter((x) => x.type !== 'root');
-      if (!this.search) {
-        return filter(this.lines);
-      }
 
       const options = {
         includeMatches: true,
@@ -99,11 +120,24 @@ export default defineComponent({
             name: 'label',
             weight: 2,
           },
-          'path',
+          'subtitle',
         ],
       };
 
-      const fuse = new Fuse(filter(this.lines), options);
+      const allElements = [
+        ...filter(this.lines.map((line) => ({
+          ...line,
+          subtitle: this.joinPath(line.path),
+          mode: 'projectItem',
+        }))),
+        // ...this.actions,
+      ];
+
+      if (!this.search) {
+        return allElements;
+      }
+
+      const fuse = new Fuse(allElements, options);
       const result = fuse.search(this.search);
       console.log('result', result);
       return result.map((element) => highlightElement(element));
@@ -149,39 +183,44 @@ export default defineComponent({
       this.selected = 0;
     },
     onLineClick(line: Item): void {
-      if (line.isLeaf && !line.isFolder) {
-        console.log('line', line);
-        const clickEvent = document.createEvent('MouseEvents');
-        clickEvent.initEvent('dblclick', true, true);
+      if (line.mode === 'action') {
+        line.action();
+        //
+      } else if (line.mode === 'projectItem') {
+        if (line.isLeaf && !line.isFolder) {
+          console.log('line', line);
+          const clickEvent = document.createEvent('MouseEvents');
+          clickEvent.initEvent('dblclick', true, true);
 
-        if (line.reference) {
-          line.reference.querySelector('.tree-item-wrap')?.dispatchEvent(clickEvent);
-        }
-      } else if (line.reference && line.isFolder) {
-        const intersectionObserver = new IntersectionObserver((entries) => {
-          const [entry] = entries;
-          if (entry.isIntersecting) {
-            intersectionObserver.disconnect();
-            setTimeout(() => {
-              line.reference?.classList.add('flash');
-              setTimeout(() => {
-                line.reference?.classList.remove('flash');
-              }, 250);
-            }, 250);
+          if (line.reference) {
+            line.reference.querySelector('.tree-item-wrap')?.dispatchEvent(clickEvent);
           }
-        });
+        } else if (line.reference && line.isFolder) {
+          const intersectionObserver = new IntersectionObserver((entries) => {
+            const [entry] = entries;
+            if (entry.isIntersecting) {
+              intersectionObserver.disconnect();
+              setTimeout(() => {
+                line.reference?.classList.add('flash');
+                setTimeout(() => {
+                  line.reference?.classList.remove('flash');
+                }, 250);
+              }, 250);
+            }
+          });
           // start observing
-        intersectionObserver.observe(line.reference);
+          intersectionObserver.observe(line.reference);
 
-        (line.reference as HTMLElement).scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
-      } else {
-        console.log('line', line);
+          (line.reference as HTMLElement).scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        } else {
+          console.log('line', line);
+        }
+
+        this.hideModal();
       }
-
-      this.hideModal();
     },
     addDimmer() {
       const dimmer = document.createElement('div');
