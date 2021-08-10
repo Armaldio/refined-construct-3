@@ -42,6 +42,7 @@ module.exports = {
       }),
     ],
   },
+  filenameHashing: false,
   pages: {
     ...pages,
     background: {
