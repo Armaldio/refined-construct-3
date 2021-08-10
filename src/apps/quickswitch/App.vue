@@ -67,6 +67,8 @@ interface ShortcutDefinition {
 type Item = UIElement & {
   path: string[],
   project: string,
+  mode: string;
+  action?: any
 }
 
 export default defineComponent({
@@ -128,7 +130,6 @@ export default defineComponent({
         ...filter(this.lines.map((line) => ({
           ...line,
           subtitle: this.joinPath(line.path),
-          mode: 'projectItem',
         }))),
         // ...this.actions,
       ];
@@ -265,6 +266,7 @@ export default defineComponent({
         ...node,
         path: path.concat(node.label),
         project: path[0],
+        mode: 'projectItem',
       });
       // }
       for (const child of node.children) {
