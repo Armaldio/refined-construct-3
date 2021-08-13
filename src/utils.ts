@@ -13,19 +13,14 @@ export type HighlightedObject <T> = T & { [K in NewKeys<T>]: string}
 export function highlightElement <T>(fuseElement: Fuse.FuseResult<T>): HighlightedObject<T> {
   const item = fuseElement.item as HighlightedObject<T>;
 
-  console.log('item', item);
-
   fuseElement.matches?.forEach((matchItem) => {
-    console.log('matchItem', matchItem);
     const key = matchItem.key as KeysOfAsType<T>;
-    console.log('key', key);
 
     // TODO support array
     if (!key || key === 'path') {
       return;
     }
     const text = item[key] as unknown as string;
-    console.log('text', text);
     const result = [];
     const matches = [...matchItem.indices];
     let pair = matches.shift();
@@ -49,8 +44,6 @@ export function highlightElement <T>(fuseElement: Fuse.FuseResult<T>): Highlight
     // @ts-ignore
     item[`${key}_highlight`] = result.join('');
   });
-
-  console.log('item', item);
 
   return item;
 }

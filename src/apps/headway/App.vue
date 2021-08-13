@@ -40,7 +40,6 @@ export default defineComponent({
       account: 'JRpALx',
       callbacks: {
         onHideWidget: () => {
-          console.log('on hide widget');
           this.hideIcon = true;
         },
       },

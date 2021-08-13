@@ -17,6 +17,7 @@
     "tinykeys": "^1.2.0",
     "type-fest": "^2.0.0",
     "vue": "^3.0.0",
+    "vue3-virtual-list": "^1.0.2",
     "vuex": "^4.0.0-0",
     "webextension-polyfill-ts": "^0.26.0"
   },

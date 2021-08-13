@@ -35,6 +35,7 @@ export default defineComponent({
           keys: [
             'label',
           ],
+          threshold: 0.3,
         };
 
         const elements = Array.from(this.list.children).map((el) => {
@@ -48,16 +49,16 @@ export default defineComponent({
 
         const fuse = new Fuse(elements, options);
         const result = fuse.search(this.search);
+        const matches = result.map((r) => r.item.label);
 
         for (let i = 0; i < this.list.children.length; i += 1) {
           const child = this.list.children[i] as HTMLElement;
           const text = (child.querySelector('.item a') as HTMLElement | undefined)?.innerText;
           if (text) {
-            console.log('text', text);
             if (this.search === '') {
               child.style.display = '';
             } else {
-              child.style.display = result.map((r) => r.item.label).includes(text) ? '' : 'none';
+              child.style.display = matches.includes(text) ? '' : 'none';
             }
           }
         }

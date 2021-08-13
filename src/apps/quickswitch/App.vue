@@ -23,19 +23,33 @@
       <span class="input-hint">enter to open</span>
       <!-- , r to rename, d to delete, c to duplicate -->
       <div class="lines" ref="lines">
-        <template
-          v-for="(line, i) in items" :key="i"
-        >
+        <!-- <VirtualList :data="items">
+          <template v-slot="{ item, index }">
+            <div
+              class="line"
+              :class="{ selected: selected === index }"
+              @click="onLineClick(item)"
+            >
+              <ui-icon :style="item.icon" class="icon"></ui-icon>
+              <div class="text">
+                <span class="title" v-html="item.label_highlight || item.label" />
+                <span class="subtitle" v-html="item.subtitle_highlight || item.subtitle"></span>
+              </div>
+            </div>
+          </template>
+        </VirtualList> -->
+        <template v-for="(item, index) in items" :key="index">
+          <!-- <pre>{{ item }}</pre> -->
           <div
             class="line"
-            :class="{ selected: selected === i }"
-            @click="onLineClick(line)"
+            :class="{ selected: selected === index }"
+            @click="onLineClick(item)"
           >
-            <div :style="line.icon" class="icon"></div>
+            <ui-icon :style="item.icon" class="icon"></ui-icon>
             <div class="text">
               <!-- eslint-disable-next-line -->
-              <span class="title" v-html="line.label_highlight || line.label" />
-              <span class="subtitle" v-html="line.subtitle_highlight || line.subtitle"></span>
+              <span class="title" v-html="item.label_highlight || item.label" />
+              <span class="subtitle" v-html="item.subtitle_highlight || item.subtitle"></span>
             </div>
           </div>
         </template>
@@ -55,6 +69,7 @@ import { HTMLToC3UI, UIElement } from '@/tree/tree';
 import { Element } from 'hast';
 import debounceFn from 'debounce-fn';
 import { HighlightedObject, highlightElement } from '@/utils';
+import { VirtualList } from 'vue3-virtual-list';
 
 type Context = 'c3' | 'quickswitch' // | 'something else'
 
@@ -67,13 +82,16 @@ interface ShortcutDefinition {
 type Item = UIElement & {
   path: string[],
   project: string,
+
   mode: string;
-  action?: any
+  action?: any;
+  subtitle?: string;
 }
 
 export default defineComponent({
   name: 'App',
   components: {
+    // VirtualList,
   },
   data() {
     return {
@@ -97,14 +115,10 @@ export default defineComponent({
           action: () => {
             const menuBtn = document.querySelector('#mainMenuButton') as HTMLElement;
             menuBtn.click();
-            console.log('menuBtn', menuBtn);
             const menu = document.querySelector('ui-menu') as HTMLElement;
-            console.log('menu', menu);
             const vue = (menu.querySelectorAll('ui-menuitem')[2]) as HTMLElement;
-            console.log('vue', vue);
             const exportMenu = (vue.querySelectorAll('ui-menuitem')[3]) as HTMLElement;
 
-            console.log('exportMenu', exportMenu);
             exportMenu.click();
             // const menu = document.querySelector('#mainMenuButton') as HTMLElement;
           },
@@ -127,10 +141,7 @@ export default defineComponent({
       };
 
       const allElements = [
-        ...filter(this.lines.map((line) => ({
-          ...line,
-          subtitle: this.joinPath(line.path),
-        }))),
+        ...filter(this.lines),
         // ...this.actions,
       ];
 
@@ -140,7 +151,6 @@ export default defineComponent({
 
       const fuse = new Fuse(allElements, options);
       const result = fuse.search(this.search);
-      console.log('result', result);
       return result.map((element) => highlightElement(element));
     },
   },
@@ -149,11 +159,7 @@ export default defineComponent({
       // @ts-ignore
       const ui = HTMLToC3UI(project);
 
-      console.log('ui', ui);
-
       const result = this.traverse(ui, [], [], true);
-
-      console.log('result', result);
 
       this.lines = result;
     },
@@ -189,7 +195,6 @@ export default defineComponent({
         //
       } else if (line.mode === 'projectItem') {
         if (line.isLeaf && !line.isFolder) {
-          console.log('line', line);
           const clickEvent = document.createEvent('MouseEvents');
           clickEvent.initEvent('dblclick', true, true);
 
@@ -249,9 +254,7 @@ export default defineComponent({
       result: Item[] = [],
       open = false,
     ) {
-      // console.log('node', node);
       if (node?.reference && open && !node.isOpened && node.isLeaf) {
-        console.log('opening ', node.label);
         const clickEvent = document.createEvent('MouseEvents');
         clickEvent.initEvent('dblclick', true, true);
 
@@ -259,12 +262,12 @@ export default defineComponent({
         node.reference.dispatchEvent(clickEvent);
       }
 
-      // console.log('node', node);
-      // console.log('path', path);
       // if (!node.children.length) {
+      const p = path.concat(node.label);
       result.push({
         ...node,
-        path: path.concat(node.label),
+        path: p,
+        subtitle: this.joinPath(p),
         project: path[0],
         mode: 'projectItem',
       });
@@ -301,8 +304,6 @@ export default defineComponent({
               block: 'center',
             });
           }
-
-          console.log('this.selected', this.selected, this.items[this.selected]);
         },
         context: 'quickswitch',
       },
@@ -310,7 +311,6 @@ export default defineComponent({
         key: 'Enter',
         action: () => {
           this.onLineClick(this.items[this.selected]);
-          console.log('this.selected', this.selected, this.items[this.selected]);
         },
         context: 'quickswitch',
       },
@@ -328,7 +328,6 @@ export default defineComponent({
               block: 'center',
             });
           }
-          console.log('this.selected', this.selected, this.items[this.selected]);
         },
         context: 'quickswitch',
       },
@@ -366,7 +365,6 @@ export default defineComponent({
   async mounted() {
     const stop = setInterval(() => {
       const project = document.querySelector('#projectBar ui-tree');
-      console.log('project', project);
 
       if (project) {
         this.$project = project;
@@ -379,7 +377,6 @@ export default defineComponent({
       if (event.data.type === 'CONTEXT') {
         this.pageWindow = event.data.window;
       }
-      // console.log('app event', event);
     }, false);
   },
 });
@@ -406,7 +403,7 @@ export default defineComponent({
   top: 50%;
   // border: 1px solid #000;
   // border-radius: 4px;
-  background-color: #474747;
+  // background-color: #474747;
 
   // z-index: 999999;
 
@@ -422,13 +419,11 @@ export default defineComponent({
   }
 
   .header {
-    background: #696969;
     height: 25px;
     font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #D9D9D9;
   }
 
   .content {
@@ -437,23 +432,27 @@ export default defineComponent({
     flex-direction: column;
 
     .input {
-      background: #303030;
-      padding: 0 8px;
+      // background: #303030;
       border-radius: 3px;
       border: 0;
       height: 50px;
-      margin: 10px;
+      margin-bottom: 16px;
       box-sizing: border-box;
       display: inline-block;
       line-height: 50px;
       font-size: 24px;
-      padding: 8px;
-      color: #b8b8b8;
+      padding: 3px 48px 3px 48px;
+      // color: #b8b8b8;
+
+      background-position: 8px 10px;
+      background-size: 32px 32px;
+      background-repeat: no-repeat;
+
     }
 
     .input-hint {
       margin-left: 0 0 0 8px;
-      color: grey;
+      // color: grey;
       font-size: 12px;
       text-align: left;
     }
@@ -474,7 +473,7 @@ export default defineComponent({
 
           .text {
             .subtitle {
-              color: #D9D9D9;
+              // color: #D9D9D9;
             }
           }
         }

@@ -8088,6 +8088,11 @@ vue-template-es2015-compiler@^1.9.0:
   resolved "https://registry.npm.taobao.org/vue-template-es2015-compiler/download/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha1-HuO8mhbsv1EYvjNLsV+cRvgvWCU=
 
+vue3-virtual-list@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/vue3-virtual-list/-/vue3-virtual-list-1.0.2.tgz#358e8f24fe7d1d72f34eeb087478dfed409a8443"
+  integrity sha512-WzJPe785hQqAWwVWsRoxUuZ0cLrI8rdQHjthE3a4Izl3l6YcgSELpjKKhhq/C1dXS1QfakjQON7Z4wb387yDhw==
+
 vue@^3.0.0:
   version "3.0.11"
   resolved "https://registry.nlark.com/vue/download/vue-3.0.11.tgz#c82f9594cbf4dcc869241d4c8dd3e08d9a8f4b5f"

@@ -20,10 +20,6 @@
       "matches": [
         "*://editor.construct.net/*"
       ],
-      "css": [
-        "css/quickswitch.css",
-        "css/headway.css"
-      ],
       "js": [
         "js/quickswitch.js",
         "js/headway.js"
@@ -34,9 +30,6 @@
     {
       "matches": [
         "*://preview.construct.net/debug.html"
-      ],
-      "css": [
-        "css/debug-search.css"
       ],
       "js": [
         "js/debug-search.js"

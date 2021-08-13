@@ -95,7 +95,6 @@ const uiTree = (node: Element) => {
 };
 
 export const HTMLToC3UI = (project: HTMLElement): UIElement => {
-  // console.log('node', project);
   const data = new UIElement('root');
 
   data.reference = project;
