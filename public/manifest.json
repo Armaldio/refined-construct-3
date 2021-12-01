@@ -29,7 +29,7 @@
     },
     {
       "matches": [
-        "*://preview.construct.net/debug.html"
+        "*://preview.construct.net/debug.html*"
       ],
       "js": [
         "js/debug-search.js"
